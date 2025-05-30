@@ -21,7 +21,6 @@ jobs:
 
     - name: Download ImmortalWrt SDK
       run: |
-        # 这里可以根据实际需要换成对应的SDK下载地址
         wget https://downloads.immortalwrt.org/releases/24.10.0/targets/bcm27xx/bcm2711/immortalwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-12.3.0_musl.Linux-x86_64.tar.xz
         tar -xvf immortalwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-12.3.0_musl.Linux-x86_64.tar.xz
         mv immortalwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-12.3.0_musl.Linux-x86_64 sdk
@@ -35,7 +34,7 @@ jobs:
     - name: Patch ax88179_178a driver
       run: |
         cd sdk
-        patch -p1 <<'EOF'
+        cat << 'EOF' > /tmp/ax88179b.patch
 diff --git a/package/kernel/linux/modules/usb.mk b/package/kernel/linux/modules/usb.mk
 index 1234567..89abcde 100644
 --- a/package/kernel/linux/modules/usb.mk
@@ -48,13 +47,14 @@ index 1234567..89abcde 100644
 +  # USB_DEVICE(0b95:1790) added to driver
  endef
  EOF
+        patch -p1 < /tmp/ax88179b.patch
 
     - name: Select kmod-usb-net-ax88179_178a
       run: |
         cd sdk
-        make menuconfig <<EOF
-<Use a tool like expect or sed here to preselect target arch and module, but for now we skip>
-EOF
+        make defconfig
+        # 可以用 sed 修改 .config 来自动选中模块
+        # 这里示例只做 defconfig，手动打开也行
 
     - name: Compile module
       run: |
