@@ -35,18 +35,18 @@ jobs:
       run: |
         cd sdk
         cat <<'EOF' > /tmp/ax88179b.patch
-diff --git a/drivers/net/usb/ax88179_178a.c b/drivers/net/usb/ax88179_178a.c
-index abcdefg..hijklmn 100644
---- a/drivers/net/usb/ax88179_178a.c
-+++ b/drivers/net/usb/ax88179_178a.c
-@@ -100,6 +100,9 @@ static const struct usb_device_id ax88179_table[] = {
-     { USB_DEVICE(0x0b95, 0x178a) }, /* AX88179 */
-+    { USB_DEVICE(0x0b95, 0x1790) }, /* AX88179B */
-     { },                            /* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, ax88179_table);
- EOF
-        patch -p1 < /tmp/ax88179b.patch
+        diff --git a/drivers/net/usb/ax88179_178a.c b/drivers/net/usb/ax88179_178a.c
+        index abcdefg..hijklmn 100644
+        --- a/drivers/net/usb/ax88179_178a.c
+        +++ b/drivers/net/usb/ax88179_178a.c
+        @@ -100,6 +100,9 @@ static const struct usb_device_id ax88179_table[] = {
+             { USB_DEVICE(0x0b95, 0x178a) }, /* AX88179 */
+        +    { USB_DEVICE(0x0b95, 0x1790) }, /* AX88179B */
+             { },                            /* Terminating entry */
+         };
+         MODULE_DEVICE_TABLE(usb, ax88179_table);
+         EOF
+                patch -p1 < /tmp/ax88179b.patch
 
     - name: Compile module
       run: |
