@@ -1,10 +1,10 @@
 name: Build kmod-usb-net-ax88179_178a
 
 on:
-  workflow_dispatch:   # 允许手动触发
+  workflow_dispatch:
   push:
     branches:
-      - main          # 或你自己设置的分支
+      - main
 
 jobs:
   build:
@@ -34,31 +34,24 @@ jobs:
     - name: Patch ax88179_178a driver
       run: |
         cd sdk
-        cat << 'EOF' > /tmp/ax88179b.patch
-diff --git a/package/kernel/linux/modules/usb.mk b/package/kernel/linux/modules/usb.mk
-index 1234567..89abcde 100644
---- a/package/kernel/linux/modules/usb.mk
-+++ b/package/kernel/linux/modules/usb.mk
-@@ -1000,6 +1000,9 @@ define KernelPackage/usb-net-ax88179
-   SUBMENU:=$(USB_MENU)
-   DEPENDS:=+kmod-usb-net
-   TITLE:=ASIX AX88179/178A USB 3.0/2.0 to Gigabit Ethernet Adapter
-+  # Add AX88179B support
-+  # USB_DEVICE(0b95:1790) added to driver
- endef
+        cat <<'EOF' > /tmp/ax88179b.patch
+diff --git a/drivers/net/usb/ax88179_178a.c b/drivers/net/usb/ax88179_178a.c
+index abcdefg..hijklmn 100644
+--- a/drivers/net/usb/ax88179_178a.c
++++ b/drivers/net/usb/ax88179_178a.c
+@@ -100,6 +100,9 @@ static const struct usb_device_id ax88179_table[] = {
+     { USB_DEVICE(0x0b95, 0x178a) }, /* AX88179 */
++    { USB_DEVICE(0x0b95, 0x1790) }, /* AX88179B */
+     { },                            /* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, ax88179_table);
  EOF
         patch -p1 < /tmp/ax88179b.patch
-
-    - name: Select kmod-usb-net-ax88179_178a
-      run: |
-        cd sdk
-        make defconfig
-        # 可以用 sed 修改 .config 来自动选中模块
-        # 这里示例只做 defconfig，手动打开也行
 
     - name: Compile module
       run: |
         cd sdk
+        make defconfig
         make package/kernel/linux/compile V=s
 
     - name: Upload artifacts
