@@ -46,12 +46,13 @@ jobs:
          };
          MODULE_DEVICE_TABLE(usb, ax88179_table);
          EOF
-        patch -p1 < /tmp/ax88179b.patch
+         patch -p1 < /tmp/ax88179b.patch
 
     - name: Compile module
       run: |
         cd sdk
         make defconfig
+        echo "CONFIG_PACKAGE_kmod-usb-net-ax88179_178a=m" >> .config
         make package/kernel/linux/compile V=s
 
     - name: Upload artifacts
@@ -59,4 +60,4 @@ jobs:
       with:
         name: kmod-usb-net-ax88179_178a
         path: |
-          sdk/bin/packages/*/*/kmod-usb-net-ax88179_178a*.ipk
+          sdk/bin/packages/**/*.ipk
