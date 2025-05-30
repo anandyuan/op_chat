@@ -1,10 +1,10 @@
 name: Build kmod-usb-net-ax88179_178a
 
 on:
-  workflow_dispatch:   # 允许手动触发
+  workflow_dispatch:
   push:
     branches:
-      - main          # 或你自己设置的分支
+      - main
 
 jobs:
   build:
@@ -21,8 +21,6 @@ jobs:
 
     - name: Download ImmortalWrt SDK
       run: |
-        # 这里可以根据实际需要换成对应的SDK下载地址
-        # wget https://downloads.immortalwrt.org/releases/24.10.0/targets/bcm27xx/bcm2711/immortalwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-12.3.0_musl.Linux-x86_64.tar.xz
         wget https://downloads.openwrt.org/releases/24.10.0/targets/bcm27xx/bcm2711/openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
         tar -xvf openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
         mv openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64 sdk
@@ -36,29 +34,24 @@ jobs:
     - name: Patch ax88179_178a driver
       run: |
         cd sdk
-        patch -p1 <<'EOF'
-        diff --git a/package/kernel/linux/modules/usb.mk b/package/kernel/linux/modules/usb.mk
-        index 1234567..89abcde 100644
-        --- a/package/kernel/linux/modules/usb.mk
-        +++ b/package/kernel/linux/modules/usb.mk
-        @@ -1000,6 +1000,9 @@ define KernelPackage/usb-net-ax88179
-           SUBMENU:=$(USB_MENU)
-           DEPENDS:=+kmod-usb-net
-           TITLE:=ASIX AX88179/178A USB 3.0/2.0 to Gigabit Ethernet Adapter
-        +  # Add AX88179B support
-        +  # USB_DEVICE(0b95:1790) added to driver
-         endef
+        cat <<'EOF' > /tmp/ax88179b.patch
+        diff --git a/drivers/net/usb/ax88179_178a.c b/drivers/net/usb/ax88179_178a.c
+        index abcdefg..hijklmn 100644
+        --- a/drivers/net/usb/ax88179_178a.c
+        +++ b/drivers/net/usb/ax88179_178a.c
+        @@ -100,6 +100,9 @@ static const struct usb_device_id ax88179_table[] = {
+             { USB_DEVICE(0x0b95, 0x178a) }, /* AX88179 */
+        +    { USB_DEVICE(0x0b95, 0x1790) }, /* AX88179B */
+             { },                            /* Terminating entry */
+         };
+         MODULE_DEVICE_TABLE(usb, ax88179_table);
          EOF
-
-    - name: Select kmod-usb-net-ax88179_178a
-      run: |
-        cd sdk
-        make menuconfig <<EOF
-        EOF
+        patch -p1 < /tmp/ax88179b.patch
 
     - name: Compile module
       run: |
         cd sdk
+        make defconfig
         make package/kernel/linux/compile V=s
 
     - name: Upload artifacts
