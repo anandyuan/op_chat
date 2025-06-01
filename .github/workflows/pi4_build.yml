@@ -120,9 +120,8 @@ jobs:
       - name: Upload ImmortalWrt as release assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: RaspberryPi4B-Enhanced-$(date '+%Y%m%d-%H%M%S')
+          tag_name: RaspberryPi4B-Enhanced
           name: 树莓派4B增强定制固件 - $(date '+%Y-%m-%d')
-          body_path: ${{ github.workspace }}/release_info.md
           files: |
             ${{ github.workspace }}/*.img.gz
             ${{ github.workspace }}/*.sha256
