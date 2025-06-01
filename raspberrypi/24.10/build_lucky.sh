@@ -2,13 +2,13 @@
 # build_lucky.sh
 
 set -e
-mkdir -p /tmp/lucky
+mkdir lucky
 echo "✅ 克隆 lucky 仓库..."
-git clone https://github.com/gdy666/lucky.git /tmp/lucky
+git clone https://github.com/gdy666/luci-app-lucky.git luci-app-lucky
 
 echo "✅ 复制 luci-app-lucky 和 lucky 到 package/..."
-cp -r /tmp/lucky/lucky package/lucky
-cp -r /tmp/lucky/luci-app-lucky package/luci-app-lucky
+cp -r luci-app-lucky/lucky package/lucky
+cp -r luci-app-lucky/luci-app-lucky package/luci-app-lucky
 
 echo "✅ 添加 luci-app-lucky 到默认编译配置..."
 echo "CONFIG_PACKAGE_lucky=y" >> .config
