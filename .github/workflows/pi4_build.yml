@@ -15,22 +15,8 @@ on:
         description: '请输入要编译固件大小 单位(MB)'
         required: true
         default: '2048'
-      include_lucky:
-        description: '是否包含Lucky软件'
-        required: true
-        default: 'yes'
-        type: choice
-        options:
-          - 'yes'
-          - 'no'
-      include_third_party:
-        description: '是否包含其他第三方软件包'
-        required: true
-        default: 'yes'
-        type: choice
-        options:
-          - 'yes'
-          - 'no'
+      
+      
 
 jobs:
   build:
