@@ -21,6 +21,7 @@ PACKAGES="$PACKAGES kmod-usb-net kmod-usb-net-asix-ax88179"
 PACKAGES="$PACKAGES kmod-usb-core kmod-usb-ohci kmod-usb-uhci kmod-usb2 kmod-usb3"
 # 网络相关内核模块
 PACKAGES="$PACKAGES kmod-usb-net-cdc-ether kmod-usb-net-rndis"
+PACKAGES="$PACKAGES kmod-tun"
 
 # USB工具和调试工具
 PACKAGES="$PACKAGES usbutils"  # 包含lsusb命令
