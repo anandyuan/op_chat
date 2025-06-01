@@ -43,6 +43,9 @@ jobs:
           profile="rpi-4"
           tag="bcm27xx-bcm2711-openwrt-24.10.0"
           echo "cpu=bcm2711" >> $GITHUB_ENV
+          echo "TAG_NAME=RaspberryPi4B-ImmortalWrt24.10-$(date '+%Y%m%d)" >> $GITHUB_ENV
+          echo "RELEASE_DATE=$(date '+%Y-%m-%d')" >> $GITHUB_ENV
+
 
           include_docker="${{ github.event.inputs.include_docker }}"
           size="${{ github.event.inputs.size }}"
@@ -120,8 +123,7 @@ jobs:
       - name: Upload ImmortalWrt as release assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: RaspberryPi4B-Enhanced
-          name: 树莓派4B增强定制固件 - $(date '+%Y-%m-%d')
+          tag_name: ${{ env.TAG_NAME }}
           files: |
             ${{ github.workspace }}/*.img.gz
             ${{ github.workspace }}/*.sha256
