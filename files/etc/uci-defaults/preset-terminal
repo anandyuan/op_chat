@@ -13,4 +13,6 @@ git clone https://github.com/zsh-users/zsh-completions ./.oh-my-zsh/custom/plugi
 # Get .zshrc dotfile
 cp $GITHUB_WORKSPACE/flie/zsh/.zshrc .
 
+sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
+
 popd
