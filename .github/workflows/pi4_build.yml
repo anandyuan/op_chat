@@ -21,6 +21,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write  # 允许创建 release
 
     steps:
       - name: Checkout code
@@ -109,6 +111,12 @@ jobs:
           echo "- 密码: password" >> release_info.md
           echo "- FileBrowser: 用户名admin, 密码admin" >> release_info.md
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: ${{ github.workspace }}/*.img.gz
+          
       - name: Upload ImmortalWrt as release assets
         uses: softprops/action-gh-release@v2
         with:
