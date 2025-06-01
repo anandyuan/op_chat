@@ -162,9 +162,9 @@ jobs:
           
           echo "" >> release_info.md
           echo "## 默认登录信息" >> release_info.md
-          echo "- IP地址: 192.168.1.1" >> release_info.md
+          echo "- IP地址: 192.168.2.253" >> release_info.md
           echo "- 用户名: root" >> release_info.md
-          echo "- 密码: (首次登录无密码，请及时设置)" >> release_info.md
+          echo "- 密码: password" >> release_info.md
           echo "- FileBrowser: 用户名admin, 密码admin" >> release_info.md
 
       - name: Upload ImmortalWrt as release assets
