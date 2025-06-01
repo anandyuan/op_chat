@@ -67,9 +67,11 @@ PACKAGES="$PACKAGES python3 python3-pip"
 # 其他常用工具
 PACKAGES="$PACKAGES luci-app-wol"  # 网络唤醒
 PACKAGES="$PACKAGES luci-app-alist luci-i18n-alist-zh-cn" # Alist文件管理
+PACKAGES="$PACKAGES luci-app-lucky" # Lucky插件
+PACKAGES="$PACKAGES luci-app-netdata" # Netdata监控
+
 # PACKAGES="$PACKAGES luci-app-wrtbwmon" # 带宽监控
 # PACKAGES="$PACKAGES luci-app-onliner" # 在线设备监控
-PACKAGES="$PACKAGES luci-app-netdata" # Netdata监控
 #PACKAGES="$PACKAGES luci-app-store" # iStore应用商店
 
 
