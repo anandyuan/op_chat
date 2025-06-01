@@ -1,4 +1,4 @@
-name: build-RaspBerryPi4B-Custom-24.10.0
+name: build-RaspBerryPi4B-Custom-Enhanced-24.10.0
 
 on:
   workflow_dispatch:
@@ -14,9 +14,17 @@ on:
       size:
         description: '请输入要编译固件大小 单位(MB)'
         required: true
-        default: '2048'  # 增加默认大小，因为添加了更多包
-      include_extra_tools:
-        description: '是否包含额外的网络工具和调试工具'
+        default: '2048'
+      include_lucky:
+        description: '是否包含Lucky软件'
+        required: true
+        default: 'yes'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
+      include_third_party:
+        description: '是否包含其他第三方软件包'
         required: true
         default: 'yes'
         type: choice
@@ -46,33 +54,63 @@ jobs:
       - name: Set executable permissions
         run: |
           chmod +x ${{ github.workspace }}/raspberrypi/24.10/build.sh
+          chmod +x ${{ github.workspace }}/raspberrypi/24.10/prepare-feeds.sh
 
-      - name: Build RaspberryPi 4B ImmortalWrt 24.10.0
+      - name: Prepare Third-party Packages
+        if: github.event.inputs.include_lucky == 'yes' || github.event.inputs.include_third_party == 'yes'
         run: |
-          # 树莓派4B使用bcm2711
+          # 创建第三方包准备脚本
+          mkdir -p ${{ github.workspace }}/third-party-packages
+          
+          # 下载lucky相关包
+          if [ "${{ github.event.inputs.include_lucky }}" == "yes" ]; then
+            echo "Downloading Lucky packages..."
+            cd ${{ github.workspace }}/third-party-packages
+            
+            # 下载lucky luci应用
+            git clone https://github.com/gdy666/luci-app-lucky.git
+            
+            # 下载lucky核心程序（如果需要）
+            git clone https://github.com/gdy666/lucky.git
+          fi
+
+      - name: Build RaspberryPi 4B ImmortalWrt 24.10.0 with Third-party Packages
+        run: |
           profile="rpi-4"
           tag="bcm27xx-bcm2711-openwrt-24.10.0"
           echo "cpu=bcm2711" >> $GITHUB_ENV
           
           include_docker="${{ github.event.inputs.include_docker }}"
           size="${{ github.event.inputs.size }}"
-          extra_tools="${{ github.event.inputs.include_extra_tools }}"
+          include_lucky="${{ github.event.inputs.include_lucky }}"
+          include_third_party="${{ github.event.inputs.include_third_party }}"
           
           echo "Building for Raspberry Pi 4B with profile: $profile"
           echo "Docker support: $include_docker"
-          echo "Extra tools: $extra_tools"
+          echo "Lucky support: $include_lucky"
+          echo "Third-party packages: $include_third_party"
           echo "Firmware size: ${size}MB"
           
           docker run --rm -i \
             --user root \
             -v "${{ github.workspace }}/bin:/home/build/immortalwrt/bin" \
             -v "${{ github.workspace }}/files:/home/build/immortalwrt/files" \
+            -v "${{ github.workspace }}/third-party-packages:/home/build/third-party-packages" \
             -v "${{ github.workspace }}/raspberrypi/24.10/build.sh:/home/build/openwrt/build.sh" \
+            -v "${{ github.workspace }}/raspberrypi/24.10/prepare-feeds.sh:/home/build/openwrt/prepare-feeds.sh" \
             -e PROFILE=$profile \
             -e INCLUDE_DOCKER=$include_docker \
-            -e INCLUDE_EXTRA_TOOLS=$extra_tools \
+            -e INCLUDE_LUCKY=$include_lucky \
+            -e INCLUDE_THIRD_PARTY=$include_third_party \
             -e ROOTSIZE=$size \
-            immortalwrt/imagebuilder:$tag /bin/bash /home/build/openwrt/build.sh
+            immortalwrt/imagebuilder:$tag /bin/bash -c "
+              # 执行feeds准备脚本
+              if [ -f /home/build/openwrt/prepare-feeds.sh ]; then
+                /bin/bash /home/build/openwrt/prepare-feeds.sh
+              fi
+              # 执行主构建脚本
+              /bin/bash /home/build/openwrt/build.sh
+            "
           
           echo "Build completed, listing output files:"
           ls -la ${{ github.workspace }}/bin/targets/bcm27xx/${{ env.cpu }}/
@@ -93,7 +131,7 @@ jobs:
       - name: Create Release Info
         run: |
           cd ${{ github.workspace }}
-          echo "# 树莓派4B定制固件" > release_info.md
+          echo "# 树莓派4B定制固件 - 增强版" > release_info.md
           echo "" >> release_info.md
           echo "## 固件特性" >> release_info.md
           echo "- 🍓 专为树莓派4B优化" >> release_info.md
@@ -102,6 +140,15 @@ jobs:
           echo "- 🚀 包含ZeroTier网络支持" >> release_info.md
           echo "- 💻 预装zsh shell" >> release_info.md
           echo "- 📁 文件管理器和Web终端" >> release_info.md
+          
+          if [ "${{ github.event.inputs.include_lucky }}" == "yes" ]; then
+            echo "- 🍀 包含Lucky软件包" >> release_info.md
+          fi
+          
+          if [ "${{ github.event.inputs.include_third_party }}" == "yes" ]; then
+            echo "- 📦 包含第三方软件包" >> release_info.md
+          fi
+          
           echo "" >> release_info.md
           echo "## 构建信息" >> release_info.md
           echo "- 构建时间: $(date '+%Y-%m-%d %H:%M:%S')" >> release_info.md
@@ -111,12 +158,6 @@ jobs:
             echo "- Docker支持: ✅ 已启用" >> release_info.md
           else
             echo "- Docker支持: ❌ 未启用" >> release_info.md
-          fi
-          
-          if [ "${{ github.event.inputs.include_extra_tools }}" == "yes" ]; then
-            echo "- 额外工具: ✅ 已包含" >> release_info.md
-          else
-            echo "- 额外工具: ❌ 未包含" >> release_info.md
           fi
           
           echo "" >> release_info.md
@@ -129,8 +170,8 @@ jobs:
       - name: Upload ImmortalWrt as release assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: RaspberryPi4B-Custom-$(date '+%Y%m%d-%H%M%S')
-          name: 树莓派4B定制固件 - $(date '+%Y-%m-%d')
+          tag_name: RaspberryPi4B-Enhanced-$(date '+%Y%m%d-%H%M%S')
+          name: 树莓派4B增强定制固件 - $(date '+%Y-%m-%d')
           body_path: ${{ github.workspace }}/release_info.md
           files: |
             ${{ github.workspace }}/*.img.gz
