@@ -33,7 +33,7 @@ jobs:
       - name: Set executable permissions
         run: |
           chmod +x ${{ github.workspace }}/raspberrypi/24.10/build.sh
-          chmod +x ${{ github.workspace }}/raspberrypi/24.10/build_lucky.sh
+
 
 
       - name: Build RaspberryPi 4B Firmware
@@ -52,13 +52,11 @@ jobs:
             -v "${{ github.workspace }}/bin:/home/build/immortalwrt/bin" \
             -v "${{ github.workspace }}/files:/home/build/immortalwrt/files" \
             -v "${{ github.workspace }}/raspberrypi/24.10/build.sh:/home/build/openwrt/build.sh" \
-            -v "${{ github.workspace }}/raspberrypi/24.10/build_lucky.sh:/home/build/openwrt/build_lucky.sh" \
             -e PROFILE=$profile \
             -e INCLUDE_DOCKER=$include_docker \
             -e ROOTSIZE=$size \
             immortalwrt/imagebuilder:$tag /bin/bash -c "
               set -e
-              bash /home/build/openwrt/build_lucky.sh
               bash /home/build/openwrt/build.sh
             "
           
@@ -90,14 +88,8 @@ jobs:
           echo "- 🚀 包含ZeroTier网络支持" >> release_info.md
           echo "- 💻 预装zsh shell" >> release_info.md
           echo "- 📁 文件管理器和Web终端" >> release_info.md
+
           
-          if [ "${{ github.event.inputs.include_lucky }}" == "yes" ]; then
-            echo "- 🍀 包含Lucky软件包" >> release_info.md
-          fi
-          
-          if [ "${{ github.event.inputs.include_third_party }}" == "yes" ]; then
-            echo "- 📦 包含第三方软件包" >> release_info.md
-          fi
           
           echo "" >> release_info.md
           echo "## 构建信息" >> release_info.md
