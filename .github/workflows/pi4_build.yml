@@ -43,7 +43,7 @@ jobs:
           profile="rpi-4"
           tag="bcm27xx-bcm2711-openwrt-24.10.0"
           echo "cpu=bcm2711" >> $GITHUB_ENV
-          echo "TAG_NAME=RaspberryPi4B-ImmortalWrt24.10-$(date '+%Y%m%d)" >> $GITHUB_ENV
+          echo "TAG_NAME=RaspberryPi4B-ImmortalWrt24.10-$(date '+%Y%m%d')" >> $GITHUB_ENV
           echo "RELEASE_DATE=$(date '+%Y-%m-%d')" >> $GITHUB_ENV
 
 
