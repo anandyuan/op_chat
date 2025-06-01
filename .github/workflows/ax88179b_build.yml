@@ -1,66 +1,140 @@
-name: Build kmod-usb-net-ax88179_178a
+name: build-RaspBerryPi4B-Custom-24.10.0
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+    inputs:
+      include_docker:
+        description: '是否编译 Docker 插件'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
+      size:
+        description: '请输入要编译固件大小 单位(MB)'
+        required: true
+        default: '2048'  # 增加默认大小，因为添加了更多包
+      include_extra_tools:
+        description: '是否包含额外的网络工具和调试工具'
+        required: true
+        default: 'yes'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout your repo
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up build environment
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3 python3-pip unzip zlib1g-dev file wget
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
-    - name: Download ImmortalWrt SDK
-      run: |
-        wget https://downloads.openwrt.org/releases/24.10.0/targets/bcm27xx/bcm2711/openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
-        tar -xvf openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
-        mv openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64 sdk
-    - name: Install feeds
-      run: |
-        cd sdk
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
+      - name: Set executable permissions
+        run: |
+          chmod +x ${{ github.workspace }}/raspberrypi/24.10/build.sh
 
-    - name: Enable ax88179_178a module
-      run: |
-        cd sdk
-        echo "CONFIG_PACKAGE_kmod-usb-net-ax88179_178a=m" >> .config
-        make defconfig
+      - name: Build RaspberryPi 4B ImmortalWrt 24.10.0
+        run: |
+          # 树莓派4B使用bcm2711
+          profile="rpi-4"
+          tag="bcm27xx-bcm2711-openwrt-24.10.0"
+          echo "cpu=bcm2711" >> $GITHUB_ENV
+          
+          include_docker="${{ github.event.inputs.include_docker }}"
+          size="${{ github.event.inputs.size }}"
+          extra_tools="${{ github.event.inputs.include_extra_tools }}"
+          
+          echo "Building for Raspberry Pi 4B with profile: $profile"
+          echo "Docker support: $include_docker"
+          echo "Extra tools: $extra_tools"
+          echo "Firmware size: ${size}MB"
+          
+          docker run --rm -i \
+            --user root \
+            -v "${{ github.workspace }}/bin:/home/build/immortalwrt/bin" \
+            -v "${{ github.workspace }}/files:/home/build/immortalwrt/files" \
+            -v "${{ github.workspace }}/raspberrypi/24.10/build.sh:/home/build/openwrt/build.sh" \
+            -e PROFILE=$profile \
+            -e INCLUDE_DOCKER=$include_docker \
+            -e INCLUDE_EXTRA_TOOLS=$extra_tools \
+            -e ROOTSIZE=$size \
+            immortalwrt/imagebuilder:$tag /bin/bash /home/build/openwrt/build.sh
+          
+          echo "Build completed, listing output files:"
+          ls -la ${{ github.workspace }}/bin/targets/bcm27xx/${{ env.cpu }}/
 
-    - name: Patch driver to support AX88179B
-      run: |
-        cd sdk
-        cat <<'EOF' > /tmp/ax88179b.patch
-        diff --git a/drivers/net/usb/ax88179_178a.c b/drivers/net/usb/ax88179_178a.c
-        index abcdefg..hijklmn 100644
-        --- a/drivers/net/usb/ax88179_178a.c
-        +++ b/drivers/net/usb/ax88179_178a.c
-        @@ -100,6 +100,9 @@ static const struct usb_device_id ax88179_table[] = {
-             { USB_DEVICE(0x0b95, 0x178a) }, /* AX88179 */
-        +    { USB_DEVICE(0x0b95, 0x1790) }, /* AX88179B */
-             { },                            /* Terminating entry */
-         };
-         MODULE_DEVICE_TABLE(usb, ax88179_table);
-         EOF
-        patch -p1 < /tmp/ax88179b.patch
+      - name: Generate Firmware SHA-256
+        run: |
+          cd ${{ github.workspace }}
+          cp bin/targets/bcm27xx/${{ env.cpu }}/*squashfs-factory.img.gz ./
+          
+          for file in *squashfs-factory.img.gz; do
+            if [ -f "$file" ]; then
+              echo "Generating SHA-256 for $file"
+              sha256sum "$file" > "$file.sha256"
+              sha256sum -c "$file.sha256"
+            fi
+          done
 
-    - name: Compile kmod-usb-net-ax88179_178a
-      run: |
-        cd sdk
-        make package/kernel/linux/compile V=s
+      - name: Create Release Info
+        run: |
+          cd ${{ github.workspace }}
+          echo "# 树莓派4B定制固件" > release_info.md
+          echo "" >> release_info.md
+          echo "## 固件特性" >> release_info.md
+          echo "- 🍓 专为树莓派4B优化" >> release_info.md
+          echo "- 🌐 支持AX88179B USB转RJ45网卡" >> release_info.md
+          echo "- 🛠️ 内置常用调试工具(lsusb, htop, tcpdump等)" >> release_info.md
+          echo "- 🚀 包含ZeroTier网络支持" >> release_info.md
+          echo "- 💻 预装zsh shell" >> release_info.md
+          echo "- 📁 文件管理器和Web终端" >> release_info.md
+          echo "" >> release_info.md
+          echo "## 构建信息" >> release_info.md
+          echo "- 构建时间: $(date '+%Y-%m-%d %H:%M:%S')" >> release_info.md
+          echo "- 固件大小: ${{ github.event.inputs.size }}MB" >> release_info.md
+          
+          if [ "${{ github.event.inputs.include_docker }}" == "yes" ]; then
+            echo "- Docker支持: ✅ 已启用" >> release_info.md
+          else
+            echo "- Docker支持: ❌ 未启用" >> release_info.md
+          fi
+          
+          if [ "${{ github.event.inputs.include_extra_tools }}" == "yes" ]; then
+            echo "- 额外工具: ✅ 已包含" >> release_info.md
+          else
+            echo "- 额外工具: ❌ 未包含" >> release_info.md
+          fi
+          
+          echo "" >> release_info.md
+          echo "## 默认登录信息" >> release_info.md
+          echo "- IP地址: 192.168.1.1" >> release_info.md
+          echo "- 用户名: root" >> release_info.md
+          echo "- 密码: (首次登录无密码，请及时设置)" >> release_info.md
+          echo "- FileBrowser: 用户名admin, 密码admin" >> release_info.md
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: kmod-usb-net-ax88179_178a
-        path: |
-          sdk/bin/packages/aarch64_cortex-a72/base/kmod-usb-net-ax88179_178a*.ipk
+      - name: Upload ImmortalWrt as release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: RaspberryPi4B-Custom-$(date '+%Y%m%d-%H%M%S')
+          name: 树莓派4B定制固件 - $(date '+%Y-%m-%d')
+          body_path: ${{ github.workspace }}/release_info.md
+          files: |
+            ${{ github.workspace }}/*.img.gz
+            ${{ github.workspace }}/*.sha256
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
