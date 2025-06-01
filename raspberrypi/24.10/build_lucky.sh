@@ -2,7 +2,7 @@
 # build_lucky.sh
 
 set -e
-
+mkdir -p /tmp/lucky
 echo "✅ 克隆 lucky 仓库..."
 git clone https://github.com/gdy666/lucky.git /tmp/lucky
 
