@@ -14,7 +14,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup Build Environment
+    - name: Clone ImmortalWrt Source
+      run: |
+        git clone https://github.com/immortalwrt/immortalwrt.git -b openwrt-24.10
+        cd immortalwrt
+
+    - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential libncurses5-dev \
@@ -22,23 +27,26 @@ jobs:
 
     - name: Initialize feeds
       run: |
+        cd immortalwrt
         ./scripts/feeds update -a
         ./scripts/feeds install kmod-usb-net-ax88179
 
     - name: Configure build
       run: |
+        cd immortalwrt
         make defconfig
-        # 这里为了更保险起见，确保包含kmod-usb-net-ax88179
         echo "CONFIG_PACKAGE_kmod-usb-net-ax88179=m" >> .config
 
-    - name: Download source and compile
+    - name: Download sources and compile
       run: |
+        cd immortalwrt
         make package/kernel/linux/compile V=s
 
     - name: Collect artifacts
       run: |
-        mkdir -p output
-        find bin/packages/ -name 'kmod-usb-net-ax88179*.ipk' -exec cp {} output/ \;
+        cd immortalwrt
+        mkdir -p ../output
+        find bin/packages/ -name 'kmod-usb-net-ax88179*.ipk' -exec cp {} ../output/ \;
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
