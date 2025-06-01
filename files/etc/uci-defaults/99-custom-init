@@ -1,0 +1,94 @@
+#!/bin/sh
+
+# 设置时区
+uci set system.@system[0].timezone='CST-8'
+uci set system.@system[0].zonename='Asia/Shanghai'
+uci commit system
+
+# 启用必要的服务
+/etc/init.d/uhttpd enable
+/etc/init.d/dropbear enable
+
+
+# 创建自定义脚本目录
+mkdir -p /root/scripts
+
+# 创建USB网卡检测脚本
+cat > /root/scripts/check_usb_network.sh << 'EOF'
+#!/bin/sh
+echo "=== USB网络设备检测 ==="
+echo "USB设备列表:"
+lsusb | grep -i "asix\|ax88179"
+echo ""
+echo "网络接口列表:"
+ip link show
+echo ""
+echo "网络接口状态:"
+ip addr show
+EOF
+
+chmod +x /root/scripts/check_usb_network.sh
+
+# 创建系统信息脚本
+cat > /root/scripts/system_info.sh << 'EOF'
+#!/bin/sh
+echo "=== 系统信息 ==="
+echo "内核版本: $(uname -r)"
+echo "系统负载: $(uptime)"
+echo "内存使用: $(free -h)"
+echo "磁盘使用: $(df -h /)"
+echo "温度: $([ -f /sys/class/thermal/thermal_zone0/temp ] && echo "$(cat /sys/class/thermal/thermal_zone0/temp | awk '{print $1/1000}')°C" || echo "N/A")"
+EOF
+
+chmod +x /root/scripts/system_info.sh
+
+# 设置shell别名
+cat >> /etc/profile << 'EOF'
+
+# 自定义别名
+alias ll='ls -la'
+alias la='ls -la'
+alias l='ls -l'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias checkusb='/root/scripts/check_usb_network.sh'
+alias sysinfo='/root/scripts/system_info.sh'
+alias logs='logread'
+alias restart-network='/etc/init.d/network restart'
+
+
+
+# 创建网络接口配置模板（如果需要手动配置USB网卡）
+cat > /root/scripts/setup_usb_network.sh << 'EOF'
+#!/bin/sh
+# USB转RJ45网卡配置脚本
+
+echo "配置USB转RJ45网卡..."
+
+# 检测USB网卡接口
+USB_IFACE=$(ip link | grep -E "eth[1-9]|usb" | head -1 | cut -d: -f2 | tr -d ' ')
+
+if [ -n "$USB_IFACE" ]; then
+    echo "检测到USB网卡接口: $USB_IFACE"
+    
+    # 添加到网络配置
+    uci set network.wan2=interface
+    uci set network.wan2.ifname="$USB_IFACE"
+    uci set network.wan2.proto='dhcp'
+    uci commit network
+    
+    # 重启网络
+    /etc/init.d/network restart
+    
+    echo "USB网卡配置完成"
+else
+    echo "未检测到USB网卡接口"
+fi
+EOF
+
+chmod +x /root/scripts/setup_usb_network.sh
+
+# 输出完成信息
+logger "Custom initialization completed"
+
+exit 0
