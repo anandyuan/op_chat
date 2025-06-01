@@ -17,7 +17,7 @@ PACKAGES="$PACKAGES curl wget"
 PACKAGES="$PACKAGES luci-i18n-firewall-zh-cn"
 
 # USB转RJ45网卡支持 (AX88179B)
-PACKAGES="$PACKAGES kmod-usb-net kmod-usb-net-asix-ax88179"
+PACKAGES="$PACKAGES kmod-usb-net kmod-usb-net-asix-ax88179 kmod-usb-net-ax88179"
 PACKAGES="$PACKAGES kmod-usb-core kmod-usb-ohci kmod-usb-uhci kmod-usb2 kmod-usb3"
 PACKAGES="$PACKAGES kmod-usb-net-cdc-ether kmod-usb-net-rndis"
 PACKAGES="$PACKAGES kmod-tun"
