@@ -36,6 +36,12 @@ jobs:
         cd immortalwrt
         make defconfig
         echo "CONFIG_PACKAGE_kmod-usb-net-ax88179=m" >> .config
+        
+    - name: Build toolchain
+      run: |
+        cd immortalwrt
+        make toolchain/install -j$(nproc)
+
 
     - name: Download sources and compile
       run: |
