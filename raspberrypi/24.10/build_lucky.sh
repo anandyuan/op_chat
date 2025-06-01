@@ -2,7 +2,7 @@
 # build_lucky.sh
 
 set -e
-mkdir lucky
+mkdir luci-app-lucky
 echo "✅ 克隆 lucky 仓库..."
 git clone https://github.com/gdy666/luci-app-lucky.git luci-app-lucky
 
