@@ -28,14 +28,7 @@ jobs:
 
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
+       
 
       - name: Set executable permissions
         run: |
@@ -43,37 +36,30 @@ jobs:
           chmod +x ${{ github.workspace }}/raspberrypi/24.10/build_lucky.sh
 
 
-      - name: Build RaspberryPi 4B ImmortalWrt 24.10.0 with Third-party Packages
+      - name: Build RaspberryPi 4B Firmware
         run: |
           profile="rpi-4"
           tag="bcm27xx-bcm2711-openwrt-24.10.0"
           echo "cpu=bcm2711" >> $GITHUB_ENV
-          
+
           include_docker="${{ github.event.inputs.include_docker }}"
           size="${{ github.event.inputs.size }}"
 
-          
-          echo "Building for Raspberry Pi 4B with profile: $profile"
-          echo "Docker support: $include_docker"
-          echo "Firmware size: ${size}MB"
-          
+          echo "Building with profile: $profile, Docker: $include_docker, Size: ${size}MB"
+
           docker run --rm -i \
             --user root \
             -v "${{ github.workspace }}/bin:/home/build/immortalwrt/bin" \
             -v "${{ github.workspace }}/files:/home/build/immortalwrt/files" \
-            -v "${{ github.workspace }}/third-party-packages:/home/build/third-party-packages" \
             -v "${{ github.workspace }}/raspberrypi/24.10/build.sh:/home/build/openwrt/build.sh" \
             -v "${{ github.workspace }}/raspberrypi/24.10/build_lucky.sh:/home/build/openwrt/build_lucky.sh" \
             -e PROFILE=$profile \
             -e INCLUDE_DOCKER=$include_docker \
             -e ROOTSIZE=$size \
             immortalwrt/imagebuilder:$tag /bin/bash -c "
-             
-              if [ -f /home/build/openwrt/build_lucky.sh ]; then
-                /bin/bash /home/build/openwrt/build_lucky.sh
-              fi
-              # 执行主构建脚本
-              /bin/bash /home/build/openwrt/build.sh
+              set -e
+              bash /home/build/openwrt/build_lucky.sh
+              bash /home/build/openwrt/build.sh
             "
           
           echo "Build completed, listing output files:"
