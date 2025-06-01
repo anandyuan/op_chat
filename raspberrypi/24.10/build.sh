@@ -8,20 +8,6 @@ echo "Building for ROOTFS_PARTSIZE: $ROOTSIZE"
 # 输出调试信息
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting build process..."
 
-# ------------------ 【新增】Lucky 源码拉取 --------------------
-echo "✅ Clone Lucky repo..."
-git clone https://github.com/gdy666/lucky.git /tmp/lucky
-
-echo "✅ Copy Lucky and luci-app-lucky to package directory..."
-cp -r /tmp/lucky/lucky package/lucky
-cp -r /tmp/lucky/luci-app-lucky package/luci-app-lucky
-
-# feeds update/install 避免依赖问题
-echo "✅ Update and install feeds..."
-./scripts/feeds update -a
-./scripts/feeds install -a
-
-# ------------------------------------------------------------
 
 # 定义所需安装的包列表
 PACKAGES=""
