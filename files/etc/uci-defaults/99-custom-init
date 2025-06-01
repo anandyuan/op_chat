@@ -7,6 +7,10 @@ uci delete ttyd.@ttyd[0].interface
 uci set dropbear.@dropbear[0].Interface=''
 uci commit
 
+# 设置 root 密码为 'password'
+echo 'root:password' | chpasswd
+exit 0
+
 # 设置时区
 uci set system.@system[0].timezone='CST-8'
 uci set system.@system[0].zonename='Asia/Shanghai'
