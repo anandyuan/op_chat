@@ -43,21 +43,19 @@ jobs:
           chmod +x ${{ github.workspace }}/raspberrypi/24.10/prepare-feeds.sh
 
       - name: Prepare Third-party Packages
-        if: github.event.inputs.include_lucky == 'yes' || github.event.inputs.include_third_party == 'yes'
         run: |
           # 创建第三方包准备脚本
           mkdir -p ${{ github.workspace }}/third-party-packages
           
           # 下载lucky相关包
-          if [ "${{ github.event.inputs.include_lucky }}" == "yes" ]; then
-            echo "Downloading Lucky packages..."
-            cd ${{ github.workspace }}/third-party-packages
+          echo "Downloading Lucky packages..."
+          cd ${{ github.workspace }}/third-party-packages
             
-            # 下载lucky luci应用
-            git clone https://github.com/gdy666/luci-app-lucky.git
+          # 下载lucky luci应用
+          git clone https://github.com/gdy666/luci-app-lucky.git
             
-            # 下载lucky核心程序（如果需要）
-            git clone https://github.com/gdy666/lucky.git
+          # 下载lucky核心程序（如果需要）
+          git clone https://github.com/gdy666/lucky.git
           fi
 
       - name: Build RaspberryPi 4B ImmortalWrt 24.10.0 with Third-party Packages
@@ -68,13 +66,10 @@ jobs:
           
           include_docker="${{ github.event.inputs.include_docker }}"
           size="${{ github.event.inputs.size }}"
-          include_lucky="${{ github.event.inputs.include_lucky }}"
-          include_third_party="${{ github.event.inputs.include_third_party }}"
+
           
           echo "Building for Raspberry Pi 4B with profile: $profile"
           echo "Docker support: $include_docker"
-          echo "Lucky support: $include_lucky"
-          echo "Third-party packages: $include_third_party"
           echo "Firmware size: ${size}MB"
           
           docker run --rm -i \
@@ -86,8 +81,6 @@ jobs:
             -v "${{ github.workspace }}/raspberrypi/24.10/prepare-feeds.sh:/home/build/openwrt/prepare-feeds.sh" \
             -e PROFILE=$profile \
             -e INCLUDE_DOCKER=$include_docker \
-            -e INCLUDE_LUCKY=$include_lucky \
-            -e INCLUDE_THIRD_PARTY=$include_third_party \
             -e ROOTSIZE=$size \
             immortalwrt/imagebuilder:$tag /bin/bash -c "
               # 执行feeds准备脚本
