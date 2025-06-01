@@ -28,7 +28,6 @@ PACKAGES="$PACKAGES pciutils"
 PACKAGES="$PACKAGES lsblk block-mount"
 
 # 系统工具
-PACKAGES="$PACKAGES htop iftop iotop"
 PACKAGES="$PACKAGES nano"
 
 # Shell增强
