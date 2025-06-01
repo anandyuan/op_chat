@@ -65,7 +65,6 @@ PACKAGES="$PACKAGES python3 python3-pip"
 # 其他常用工具
 PACKAGES="$PACKAGES luci-app-wol"
 PACKAGES="$PACKAGES luci-app-alist luci-i18n-alist-zh-cn"
-PACKAGES="$PACKAGES luci-app-lucky"   # Lucky插件
 PACKAGES="$PACKAGES luci-app-netdata"
 
 # 判断是否需要编译 Docker 插件
