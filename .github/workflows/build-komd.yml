@@ -32,7 +32,10 @@ jobs:
           wget https://downloads.openwrt.org/releases/24.10.0/targets/bcm27xx/bcm2711/openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
           tar -I zstd -xf openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
           echo "解压完成"
-          
+      - name: Prepare SDK kernel
+        run: |
+          cd openwrt-sdk
+          make target/linux/prepare V=s   
 
       - name: Set up environment variables
         run: |
@@ -41,8 +44,7 @@ jobs:
 
       - name: Build AX88179 driver module
         run: |
-          echo "$(pwd)"
-          #cd $GITHUB_WORKSPACE
+          cd $GITHUB_WORKSPACE
           export ARCH=arm64
           export CROSS_COMPILE=$GITHUB_WORKSPACE/openwrt-sdk/staging_dir/toolchain-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl/bin/aarch64-openwrt-linux-
           export KERNELDIR=$(find $GITHUB_WORKSPACE/openwrt-sdk/build_dir/target-aarch64_cortex-a72_musl/linux-bcm27xx_bcm2711/ -name "linux-*" | head -n 1)
