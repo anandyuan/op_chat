@@ -35,7 +35,7 @@ jobs:
       - name: Prepare SDK kernel
         run: |
           cd openwrt-sdk
-          make target/linux/prepare V=s   
+          make package/kernel/linux/compile V=s
 
       - name: Set up environment variables
         run: |
