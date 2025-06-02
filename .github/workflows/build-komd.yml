@@ -27,9 +27,12 @@ jobs:
 
       - name: Download OpenWrt SDK (Raspberry Pi 4B, 24.10)
         run: |
+          mkdir openwrt-sdk
+          cd openwrt-sdk
           wget https://downloads.openwrt.org/releases/24.10.0/targets/bcm27xx/bcm2711/openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
-          tar -I zstd -xvf openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
-          mv openwrt-sdk* openwrt-sdk
+          tar -I zstd -xf openwrt-sdk-24.10.0-bcm27xx-bcm2711_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+          echo "解压完成"
+          
 
       - name: Set up environment variables
         run: |
