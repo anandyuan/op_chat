@@ -24,14 +24,10 @@ PACKAGES="$PACKAGES kmod-tun"
 
 # 硬件支持
 # 无线网卡和USB网卡驱动支持
-PACKAGES="$PACKAGES kmod-rtl8187"
-PACKAGES="$PACKAGES kmod-rtl8188eu"
+
 PACKAGES="$PACKAGES kmod-rtl8192c-common"
 PACKAGES="$PACKAGES kmod-rtl8192cu"
 PACKAGES="$PACKAGES kmod-rtl8192du"
-PACKAGES="$PACKAGES kmod-rtl8812au-ac"
-PACKAGES="$PACKAGES kmod-rtl8821cu"
-PACKAGES="$PACKAGES kmod-rtl88x2bu"
 PACKAGES="$PACKAGES kmod-rtlwifi"
 PACKAGES="$PACKAGES kmod-rtlwifi-usb"
 PACKAGES="$PACKAGES kmod-usb-net-rtl8150"
@@ -107,9 +103,9 @@ PACKAGES="$PACKAGES luci-app-netdata"
 
 # 新增
 PACKAGES="$PACKAGES luci-app-eqos"
-PACKAGES="$PACKAGES luci-app-gowebdav"
+# PACKAGES="$PACKAGES luci-app-gowebdav"
 PACKAGES="$PACKAGES luci-app-openvpn-server"
-PACKAGES="$PACKAGES luci-app-samba"
+# PACKAGES="$PACKAGES luci-app-samba"
 
 # 判断是否需要编译 Docker 插件
 if [ "$INCLUDE_DOCKER" = "yes" ]; then
